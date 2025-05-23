@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS "users";
+DROP TABLE IF EXISTS "product";
+DROP TABLE IF EXISTS "commission";
+DROP TABLE IF EXISTS "affiliate";
