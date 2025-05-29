@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"net/http"
 	db "simple/db/sqlc"
 
@@ -34,6 +35,10 @@ func (server *server) CreateAffiliate(ctx *gin.Context) {
 		Name:            req.Name,
 		MasterAffiliate: masterAff,
 		Balance:         "0.00",
+		Percent: sql.NullFloat64{
+			Float64: 0.30,
+			Valid:   true,
+		},
 	}
 
 	affiliate, err := server.Affiliates.Createaffiliate(ctx, arg)

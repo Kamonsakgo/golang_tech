@@ -113,24 +113,23 @@ func (p *Products) BuyProduct(ctx context.Context, data Product_order) (Product_
 		if err != nil {
 			return Product_order_Output{}, err
 		}
-		useraff, err := p.affiliate.q.GetaffiliateByname(ctx, user.Username)
-		if err != nil {
-			return Product_order_Output{}, err
-		}
-		affiliateChain = append(
-			[]GetAffiliateChainRow{{ID: user.AffiliateID.UUID, MasterAffiliate: useraff.MasterAffiliate, Balance: useraff.Balance}},
-			affiliateChain...,
-		)
+		// useraff, err := p.affiliate.q.GetaffiliateByname(ctx, user.Username)
+		// if err != nil {
+		// 	return Product_order_Output{}, err
+		// }
+		// affiliateChain = append(
+		// 	[]GetAffiliateChainRow{{ID: useraff.ID, MasterAffiliate: useraff.MasterAffiliate, Balance: useraff.Balance}},
+		// 	affiliateChain...,
+		// )
 
 		productPrice, err := strconv.ParseFloat(data.Price, 64)
 		if err != nil {
 			return Product_order_Output{}, err
 		}
 
-		percentages := []float64{0.10, 0.07, 0.05, 0.03, 0.01}
-		for i := 0; i < len(affiliateChain) && i < len(percentages); i++ {
+		for i := 0; i < len(affiliateChain); i++ {
 			fmt.Println(affiliateChain[i].ID)
-			commissionToAdd := productPrice * percentages[i]
+			commissionToAdd := productPrice * affiliateChain[i].Percent.Float64
 			commissionToAddstr := strconv.FormatFloat(commissionToAdd, 'f', -1, 64)
 
 			err = p.q.AddBalance_affiliate(ctx, AddBalance_affiliateParams{

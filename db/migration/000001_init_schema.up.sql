@@ -24,7 +24,8 @@ CREATE TABLE "affiliate" (
   "id" uuid PRIMARY KEY NOT NULL,
   "name" text NOT NULL,
   "master_affiliate" uuid,
-  "balance" numeric(12,2) NOT NULL DEFAULT 0
+  "balance" numeric(12,2) NOT NULL DEFAULT 0,
+  "percent" float
 );
 
 CREATE INDEX ON "users" ("username");

@@ -5,14 +5,17 @@
 package db
 
 import (
+	"database/sql"
+
 	"github.com/google/uuid"
 )
 
 type Affiliate struct {
-	ID              uuid.UUID     `json:"id"`
-	Name            string        `json:"name"`
-	MasterAffiliate uuid.NullUUID `json:"master_affiliate"`
-	Balance         string        `json:"balance"`
+	ID              uuid.UUID       `json:"id"`
+	Name            string          `json:"name"`
+	MasterAffiliate uuid.NullUUID   `json:"master_affiliate"`
+	Balance         string          `json:"balance"`
+	Percent         sql.NullFloat64 `json:"percent"`
 }
 
 type Commission struct {

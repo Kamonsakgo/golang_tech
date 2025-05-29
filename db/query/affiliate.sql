@@ -1,6 +1,6 @@
 -- name: Createaffiliate :one
-INSERT INTO affiliate ( name, master_affiliate,balance)
-VALUES ( $1, $2 , $3)
+INSERT INTO affiliate ( name, master_affiliate,balance,percent)
+VALUES ( $1, $2 , $3,$4)
 RETURNING *;
 
 -- name: Getaffiliate :one
@@ -15,18 +15,19 @@ ORDER BY id;
 
 -- name: GetAffiliateChain :many
 WITH RECURSIVE affiliate_chain AS (
-  SELECT a.id, a.master_affiliate, a.balance
+  SELECT a.id, a.master_affiliate, a.balance ,a.percent
   FROM affiliate a
   WHERE a.id = $1
 
   UNION ALL
 
-  SELECT a2.id, a2.master_affiliate, a2.balance
+  SELECT a2.id, a2.master_affiliate, a2.balance, a2.percent
   FROM affiliate a2
   INNER JOIN affiliate_chain ac ON a2.id = ac.master_affiliate
 )
-SELECT ac.id, ac.master_affiliate, ac.balance
+SELECT ac.id, ac.master_affiliate, ac.balance, ac.percent
 FROM affiliate_chain ac;
+
 
 
 -- name: AddBalance_affiliate :exec

@@ -44,11 +44,19 @@ func (u *Users) CreateUser(ctx context.Context, arg CreateUsersParams) (User, er
 		}
 	} else {
 		// ถ้า AffiliateID มีค่า ให้ตั้ง Valid เป็น true
+		Affiliate, err := u.q.Getaffiliate(ctx, arg.AffiliateID.UUID)
+		if err != nil {
+			return User{}, err
+		}
 		arg.AffiliateID.Valid = true
 		u.q.Createaffiliate(ctx, CreateaffiliateParams{
 			Name:            arg.Username,
 			MasterAffiliate: arg.AffiliateID,
 			Balance:         "0.00",
+			Percent: sql.NullFloat64{
+				Float64: Affiliate.Percent.Float64 / 2,
+				Valid:   true,
+			},
 		})
 	}
 

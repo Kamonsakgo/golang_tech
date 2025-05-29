@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 )
@@ -28,49 +29,57 @@ func (q *Queries) AddBalance_affiliate(ctx context.Context, arg AddBalance_affil
 }
 
 const createaffiliate = `-- name: Createaffiliate :one
-INSERT INTO affiliate ( name, master_affiliate,balance)
-VALUES ( $1, $2 , $3)
-RETURNING id, name, master_affiliate, balance
+INSERT INTO affiliate ( name, master_affiliate,balance,percent)
+VALUES ( $1, $2 , $3,$4)
+RETURNING id, name, master_affiliate, balance, percent
 `
 
 type CreateaffiliateParams struct {
-	Name            string        `json:"name"`
-	MasterAffiliate uuid.NullUUID `json:"master_affiliate"`
-	Balance         string        `json:"balance"`
+	Name            string          `json:"name"`
+	MasterAffiliate uuid.NullUUID   `json:"master_affiliate"`
+	Balance         string          `json:"balance"`
+	Percent         sql.NullFloat64 `json:"percent"`
 }
 
 func (q *Queries) Createaffiliate(ctx context.Context, arg CreateaffiliateParams) (Affiliate, error) {
-	row := q.db.QueryRowContext(ctx, createaffiliate, arg.Name, arg.MasterAffiliate, arg.Balance)
+	row := q.db.QueryRowContext(ctx, createaffiliate,
+		arg.Name,
+		arg.MasterAffiliate,
+		arg.Balance,
+		arg.Percent,
+	)
 	var i Affiliate
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.MasterAffiliate,
 		&i.Balance,
+		&i.Percent,
 	)
 	return i, err
 }
 
 const getAffiliateChain = `-- name: GetAffiliateChain :many
 WITH RECURSIVE affiliate_chain AS (
-  SELECT a.id, a.master_affiliate, a.balance
+  SELECT a.id, a.master_affiliate, a.balance ,a.percent
   FROM affiliate a
   WHERE a.id = $1
 
   UNION ALL
 
-  SELECT a2.id, a2.master_affiliate, a2.balance
+  SELECT a2.id, a2.master_affiliate, a2.balance, a2.percent
   FROM affiliate a2
   INNER JOIN affiliate_chain ac ON a2.id = ac.master_affiliate
 )
-SELECT ac.id, ac.master_affiliate, ac.balance
+SELECT ac.id, ac.master_affiliate, ac.balance, ac.percent
 FROM affiliate_chain ac
 `
 
 type GetAffiliateChainRow struct {
-	ID              uuid.UUID     `json:"id"`
-	MasterAffiliate uuid.NullUUID `json:"master_affiliate"`
-	Balance         string        `json:"balance"`
+	ID              uuid.UUID       `json:"id"`
+	MasterAffiliate uuid.NullUUID   `json:"master_affiliate"`
+	Balance         string          `json:"balance"`
+	Percent         sql.NullFloat64 `json:"percent"`
 }
 
 func (q *Queries) GetAffiliateChain(ctx context.Context, id uuid.UUID) ([]GetAffiliateChainRow, error) {
@@ -82,7 +91,12 @@ func (q *Queries) GetAffiliateChain(ctx context.Context, id uuid.UUID) ([]GetAff
 	var items []GetAffiliateChainRow
 	for rows.Next() {
 		var i GetAffiliateChainRow
-		if err := rows.Scan(&i.ID, &i.MasterAffiliate, &i.Balance); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.MasterAffiliate,
+			&i.Balance,
+			&i.Percent,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -97,7 +111,7 @@ func (q *Queries) GetAffiliateChain(ctx context.Context, id uuid.UUID) ([]GetAff
 }
 
 const getaffiliate = `-- name: Getaffiliate :one
-SELECT id, name, master_affiliate, balance FROM affiliate
+SELECT id, name, master_affiliate, balance, percent FROM affiliate
 WHERE id = $1 LIMIT 1
 `
 
@@ -109,12 +123,13 @@ func (q *Queries) Getaffiliate(ctx context.Context, id uuid.UUID) (Affiliate, er
 		&i.Name,
 		&i.MasterAffiliate,
 		&i.Balance,
+		&i.Percent,
 	)
 	return i, err
 }
 
 const getaffiliateByname = `-- name: GetaffiliateByname :one
-SELECT id, name, master_affiliate, balance FROM affiliate
+SELECT id, name, master_affiliate, balance, percent FROM affiliate
 WHERE name = $1 LIMIT 1
 `
 
@@ -126,12 +141,13 @@ func (q *Queries) GetaffiliateByname(ctx context.Context, name string) (Affiliat
 		&i.Name,
 		&i.MasterAffiliate,
 		&i.Balance,
+		&i.Percent,
 	)
 	return i, err
 }
 
 const listaffiliate = `-- name: Listaffiliate :many
-SELECT id, name, master_affiliate, balance FROM affiliate
+SELECT id, name, master_affiliate, balance, percent FROM affiliate
 ORDER BY id
 `
 
@@ -149,6 +165,7 @@ func (q *Queries) Listaffiliate(ctx context.Context) ([]Affiliate, error) {
 			&i.Name,
 			&i.MasterAffiliate,
 			&i.Balance,
+			&i.Percent,
 		); err != nil {
 			return nil, err
 		}
