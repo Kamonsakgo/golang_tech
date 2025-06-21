@@ -1,0 +1,13 @@
+# Build artifacts
+tmp/
+*.exe
+
+# IDE files
+.vscode/
+
+# Go build artifacts
+*.out
+*.test
+
+# Dependency directories
+vendor/ 
